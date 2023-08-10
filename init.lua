@@ -1,6 +1,6 @@
 --[[
 
-ward_func.add_persistent_effect({
+persistent_api.add_persistent_effect({
   name = string,  -- effect identifier. Will be overwritten if another effect is added to the same object with the same identifier.
   object = ObjectRef,   -- ObjectRef which is referenced and attached to the effect.
   duration = float,   -- amount of time until the effect is removed.
@@ -11,7 +11,7 @@ ward_func.add_persistent_effect({
 Example:
   local player = minetest.get_player_by_name("JohnSmith")
 
-  ward_func.add_persistent_effect({
+  persistent_api.add_persistent_effect({
     name = "damage_player",
     object = player,
     duration = 10, -- this effect will last 10 seconds
@@ -24,25 +24,27 @@ Example:
 
 ]]
 
-persistent_effects = {
+persistent_api = {
   effects = {}
 }
 
-function persistent_effects.add_persistent_effect(def)
-  persistent_effects.effects[def.object] = persistent_effects.effects[def.object] or {}
-  persistent_effects.effects[def.object][def.name] = {duration = minetest.get_gametime()+def.duration, persistence = {def.persistence, 0}, effect = def.effect}
+function persistent_api.add_persistent_effect(def)
+  persistent_api.effects[def.object] = persistent_api.effects[def.object] or {}
+  persistent_api.effects[def.object][def.name] = {duration = minetest.get_gametime()+def.duration, persistence = {def.persistence, 0}, effect = def.effect}
 end
 
+local lsls = false
+
 minetest.register_globalstep(function(dtime)
-  for object,defs in pairs(persistent_effects.effects) do
+  for object,defs in pairs(persistent_api.effects) do
     for indexx,def in pairs(defs) do
       if def.duration < minetest.get_gametime() then
-        persistent_effects.effects[object][indexx] = nil
+        persistent_api.effects[object][indexx] = nil
       else
-        def.persistance[2] = def.persistance[2] + dtime
-        if def.persistance[2] > def.persistance[1] then
+        def.persistence[2] = def.persistence[2] + dtime
+        if def.persistence[2] > def.persistence[1] then
           def.effect(object)
-          def.persistance[2] = 0
+          def.persistence[2] = 0
         end
       end
     end
